@@ -2,7 +2,7 @@
   "name": "abap-section-colours",
   "displayName": "abap-section-colours",
   "description": "Colour ABAP class definition sections",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "larshp",
   "engines": {
     "vscode": "^1.118.0"
