@@ -16,25 +16,19 @@ const sectionDecorations: Record<SectionKind, vscode.TextEditorDecorationType> =
 		isWholeLine: true,
 		borderColor: 'rgba(80, 180, 120, 0.55)',
 		borderStyle: 'solid',
-		borderWidth: '0 0 0 3px',
-		overviewRulerColor: 'rgba(80, 180, 120, 0.55)',
-		overviewRulerLane: vscode.OverviewRulerLane.Left
+		borderWidth: '0 0 0 3px'
 	}),
 	protected: vscode.window.createTextEditorDecorationType({
 		isWholeLine: true,
 		borderColor: 'rgba(230, 190, 70, 0.55)',
 		borderStyle: 'solid',
-		borderWidth: '0 0 0 3px',
-		overviewRulerColor: 'rgba(230, 190, 70, 0.55)',
-		overviewRulerLane: vscode.OverviewRulerLane.Left
+		borderWidth: '0 0 0 3px'
 	}),
 	private: vscode.window.createTextEditorDecorationType({
 		isWholeLine: true,
 		borderColor: 'rgba(220, 120, 90, 0.55)',
 		borderStyle: 'solid',
-		borderWidth: '0 0 0 3px',
-		overviewRulerColor: 'rgba(220, 120, 90, 0.55)',
-		overviewRulerLane: vscode.OverviewRulerLane.Left
+		borderWidth: '0 0 0 3px'
 	})
 };
 
