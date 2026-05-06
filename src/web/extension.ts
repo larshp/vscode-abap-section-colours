@@ -1,27 +1,146 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+type SectionKind = 'public' | 'protected' | 'private';
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "abap-section-colours" is now active in the web extension host!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('abap-section-colours.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from abap-section-colours in a web extension host!');
-	});
-
-	context.subscriptions.push(disposable);
+export interface SectionLineRange {
+	kind: SectionKind;
+	startLine: number;
+	endLine: number;
 }
 
-// This method is called when your extension is deactivated
+const sectionPattern = /^\s*(public|protected|private)\s+section\s*\./i;
+const endClassPattern = /^\s*endclass\s*\./i;
+
+const sectionDecorations: Record<SectionKind, vscode.TextEditorDecorationType> = {
+	public: vscode.window.createTextEditorDecorationType({
+		isWholeLine: true,
+		borderColor: 'rgba(80, 180, 120, 0.9)',
+		borderStyle: 'solid',
+		borderWidth: '0 0 0 3px',
+		overviewRulerColor: 'rgba(80, 180, 120, 0.8)',
+		overviewRulerLane: vscode.OverviewRulerLane.Left
+	}),
+	protected: vscode.window.createTextEditorDecorationType({
+		isWholeLine: true,
+		borderColor: 'rgba(230, 190, 70, 0.9)',
+		borderStyle: 'solid',
+		borderWidth: '0 0 0 3px',
+		overviewRulerColor: 'rgba(230, 190, 70, 0.8)',
+		overviewRulerLane: vscode.OverviewRulerLane.Left
+	}),
+	private: vscode.window.createTextEditorDecorationType({
+		isWholeLine: true,
+		borderColor: 'rgba(220, 120, 90, 0.9)',
+		borderStyle: 'solid',
+		borderWidth: '0 0 0 3px',
+		overviewRulerColor: 'rgba(220, 120, 90, 0.8)',
+		overviewRulerLane: vscode.OverviewRulerLane.Left
+	})
+};
+
+export function findAbapSectionLineRanges(text: string): SectionLineRange[] {
+	const lines = text.split(/\r?\n/);
+	const ranges: SectionLineRange[] = [];
+	let current: SectionLineRange | undefined;
+
+	for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+		const line = lines[lineIndex];
+		const sectionMatch = sectionPattern.exec(line);
+
+		if (sectionMatch) {
+			if (current) {
+				current.endLine = lineIndex - 1;
+				ranges.push(current);
+			}
+
+			current = {
+				kind: sectionMatch[1].toLowerCase() as SectionKind,
+				startLine: lineIndex,
+				endLine: lineIndex
+			};
+			continue;
+		}
+
+		if (current && endClassPattern.test(line)) {
+			current.endLine = lineIndex - 1;
+			ranges.push(current);
+			current = undefined;
+		}
+	}
+
+	if (current) {
+		current.endLine = lines.length - 1;
+		ranges.push(current);
+	}
+
+	return ranges.filter(range => range.endLine >= range.startLine);
+}
+
+export function activate(context: vscode.ExtensionContext) {
+	context.subscriptions.push(...Object.values(sectionDecorations));
+
+	let updateTimer: ReturnType<typeof setTimeout> | undefined;
+
+	const queueUpdate = () => {
+		if (updateTimer) {
+			clearTimeout(updateTimer);
+		}
+
+		updateTimer = setTimeout(() => {
+			updateVisibleEditors();
+		}, 100);
+	};
+
+	const updateVisibleEditors = () => {
+		for (const editor of vscode.window.visibleTextEditors) {
+			updateEditorDecorations(editor);
+		}
+	};
+
+	context.subscriptions.push(
+		vscode.window.onDidChangeVisibleTextEditors(updateVisibleEditors),
+		vscode.window.onDidChangeActiveTextEditor(queueUpdate),
+		vscode.workspace.onDidChangeTextDocument(event => {
+			if (vscode.window.visibleTextEditors.some(editor => editor.document === event.document)) {
+				queueUpdate();
+			}
+		})
+	);
+
+	updateVisibleEditors();
+}
+
+function updateEditorDecorations(editor: vscode.TextEditor): void {
+	if (editor.document.languageId !== 'abap') {
+		clearDecorations(editor);
+		return;
+	}
+
+	const rangesByKind: Record<SectionKind, vscode.Range[]> = {
+		public: [],
+		protected: [],
+		private: []
+	};
+
+	for (const sectionRange of findAbapSectionLineRanges(editor.document.getText())) {
+		const endLine = Math.min(sectionRange.endLine, editor.document.lineCount - 1);
+		rangesByKind[sectionRange.kind].push(new vscode.Range(
+			sectionRange.startLine,
+			0,
+			endLine,
+			editor.document.lineAt(endLine).range.end.character
+		));
+	}
+
+	for (const kind of Object.keys(sectionDecorations) as SectionKind[]) {
+		editor.setDecorations(sectionDecorations[kind], rangesByKind[kind]);
+	}
+}
+
+function clearDecorations(editor: vscode.TextEditor): void {
+	for (const decoration of Object.values(sectionDecorations)) {
+		editor.setDecorations(decoration, []);
+	}
+}
+
 export function deactivate() {}
