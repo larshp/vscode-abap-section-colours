@@ -14,26 +14,26 @@ const endClassPattern = /^\s*endclass\s*\./i;
 const sectionDecorations: Record<SectionKind, vscode.TextEditorDecorationType> = {
 	public: vscode.window.createTextEditorDecorationType({
 		isWholeLine: true,
-		borderColor: 'rgba(80, 180, 120, 0.9)',
+		borderColor: 'rgba(80, 180, 120, 0.55)',
 		borderStyle: 'solid',
 		borderWidth: '0 0 0 3px',
-		overviewRulerColor: 'rgba(80, 180, 120, 0.8)',
+		overviewRulerColor: 'rgba(80, 180, 120, 0.55)',
 		overviewRulerLane: vscode.OverviewRulerLane.Left
 	}),
 	protected: vscode.window.createTextEditorDecorationType({
 		isWholeLine: true,
-		borderColor: 'rgba(230, 190, 70, 0.9)',
+		borderColor: 'rgba(230, 190, 70, 0.55)',
 		borderStyle: 'solid',
 		borderWidth: '0 0 0 3px',
-		overviewRulerColor: 'rgba(230, 190, 70, 0.8)',
+		overviewRulerColor: 'rgba(230, 190, 70, 0.55)',
 		overviewRulerLane: vscode.OverviewRulerLane.Left
 	}),
 	private: vscode.window.createTextEditorDecorationType({
 		isWholeLine: true,
-		borderColor: 'rgba(220, 120, 90, 0.9)',
+		borderColor: 'rgba(220, 120, 90, 0.55)',
 		borderStyle: 'solid',
 		borderWidth: '0 0 0 3px',
-		overviewRulerColor: 'rgba(220, 120, 90, 0.8)',
+		overviewRulerColor: 'rgba(220, 120, 90, 0.55)',
 		overviewRulerLane: vscode.OverviewRulerLane.Left
 	})
 };
