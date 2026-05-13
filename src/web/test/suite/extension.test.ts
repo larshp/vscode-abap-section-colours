@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { findAbapSectionLineRanges } from '../../extension';
+import { findAbapSectionHeaderRanges, findAbapSectionLineRanges } from '../../extension';
 
 suite('Web Extension Test Suite', () => {
 	test('finds ABAP class definition section ranges', () => {
@@ -31,6 +31,22 @@ suite('Web Extension Test Suite', () => {
 
 		assert.deepStrictEqual(ranges, [
 			{ kind: 'public', startLine: 1, endLine: 2 }
+		]);
+	});
+
+	test('finds ABAP section header text ranges', () => {
+		const ranges = findAbapSectionHeaderRanges([
+			'CLASS zcl_demo DEFINITION PUBLIC.',
+			'  PUBLIC SECTION.',
+			'  PROTECTED SECTION.  ',
+			'  PRIVATE SECTION.',
+			'ENDCLASS.'
+		].join('\n'));
+
+		assert.deepStrictEqual(ranges, [
+			{ kind: 'public', line: 1, startCharacter: 0, endCharacter: 17 },
+			{ kind: 'protected', line: 2, startCharacter: 0, endCharacter: 22 },
+			{ kind: 'private', line: 3, startCharacter: 0, endCharacter: 18 }
 		]);
 	});
 });
